@@ -7,7 +7,7 @@ We added a third type of agent to the basic Schelling Segregation model. This ch
 
 ## What we do
 
-First, we define three groups, ``Majority(GroupA)``, ``Minority1(GroupB)``, ``Minority1(GroupB)``. To mesure happiness and related variables of all three types, we also added some initial variables in ``model.py`` and ``agents.py``. 
+First, we define three groups, ``Majority(GroupA)``, ``Minority1(GroupB)``, ``Minority1(GroupC)``. To mesure happiness and related variables of all three types, we also added some initial variables in ``model.py`` and ``agents.py``. 
 
 Then, we also tweaked ``server`` side. To define the ratio of all three type of people, we added an extra user settable parameter. Due to this change, users can change the ratio of majority, minority1, and minority2 as they wish. 
 
