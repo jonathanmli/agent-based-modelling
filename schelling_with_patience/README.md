@@ -1,17 +1,39 @@
-# Schelling Segregation Model
+# Assignment1: additional parameters to the Schelling segregation model
+
+Shogo Nakano / Jonathan Li
+(507 words)
+
 **Main text taken from Mesa Examples Library
 
-## Background
+## Background and summary of change
 
-The Schelling segregation model is a classic agent-based model, demonstrating how even a mild preference for similar neighbors can lead to a much higher degree of segregation than we would intuitively expect. The model consists of agents on a square grid, where each grid cell can contain at most one agent. Agents come in two colors: red and blue. They are happy if a certain number of their eight possible neighbors are of the same color, and unhappy otherwise. Unhappy agents will pick a random empty cell to move to each step, until they are happy. The model keeps running until there are no unhappy agents.
+The base model is the Schelling segregation model, which shows how even a mild preference for similar neighbors can lead to a much higher degree of segregation than we would intuitively expect. However, since the original model was based on several unrealistic assumptions, we attempted to improve it in several ways. The changes are (1) adding patience, (2) changing how agents move (restricting the ability to move), and (3) heterogeneity of agent tolerance.
 
-By default, the number of similar neighbors the agents need to be happy is set to 3. That means the agents would be perfectly happy with a majority of their neighbors being of a different color (e.g. a Blue agent would be happy with five Red neighbors and three Blue ones). Despite this, the model consistently leads to a high degree of segregation, with most agents ending up with no neighbors of a different color.
+## Design concepts
 
-## Summary
+The basic design concepts are the same as the original model. In other words:
 
-This example modifies the classic Schelling model by adding a patience parameter to the agents. 
+**Who**: There are two types of agents. Majority and Minority.  The population ratio is user settable parameter.
 
-Moreover, agents are also hetergenous (with different patience levels and tolerance)
+**Does what**: Each agent calculates whether the percentage of the different types of agents among his neighbor exceeds his tolerance. If it exceeds, the patience increases; if not, it decreases. Agents that exceed a certain tolerance level are moved to another cell. He can only move their surrounding cells in one step.
+
+**How**: Agents on a 16*16 grid interact with one another in each step. We use random initialization, and all agents act simultaneously in each step. The agents have their own tolerance and patience levels, which follow the beta distribution.
+
+
+## Details
+
+This section will focus on what we changed from the original model, and other points will be briefly discussed.
+
+First, we added patience. In the original model, unhappy agents were immediately moved to another available cell. In reality, however, agents are expected to move with some lag for various reasons, including the cost of moving and the time required to conduct a new house search (Information asymmetry may make it take longer to find a home). This parameter eliminates the immediate move by the unhappy agent.
+
+Second, we changed how agents move. In the original model, agents can move anywhere, no matter how far the new cell is. However, this assumption is also unrealistic because it fails to take into account the cost of moving. Therefore, we restrict the cells where the agents can move. Precisely, it can move to only 8 cells around itself. The agents must be moved further if the move does not improve their situation. However, they will no longer have to move unlimitedly around in all directions in the grid.
+
+Lastly, we change the initialization method of intolerance.  Although the original model assumed that all agents had identical intolerance, it is natural to assume that there is heterogeneity in these preferences. Therefore, we assumed that intolerance follows a beta distribution, allowing for agents’ heterogeneity. We also use the same method for the initialization of patience. The mean of the distribution is a user settable parameter.
+
+These changes are intended to relax the previous model's overly strong assumptions and make the model more complex. In particular, the first two changes restrict the agent's ability to move and the speed of his decision to move. By varying these constraints (like moving ability or patience) and observing how the behavior of the model changes, we expect to get an indication of how cost constraints or information collection capacity issues affect segregation.
+
+
+-------------------------
 
 ## Installation
 
