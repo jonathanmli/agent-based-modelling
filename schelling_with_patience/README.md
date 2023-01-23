@@ -1,4 +1,4 @@
-# Assignment1: additional parameters to the Schelling segregation model
+# Adding additional parameters to the Schelling segregation model
 
 Shogo Nakano / Jonathan Li
 (507 words)
@@ -7,7 +7,7 @@ Shogo Nakano / Jonathan Li
 
 ## Background and summary of change
 
-The base model is the Schelling segregation model, which shows how even a mild preference for similar neighbors can lead to a much higher degree of segregation than we would intuitively expect. However, since the original model was based on several unrealistic assumptions, we attempted to improve it in several ways. The changes are (1) adding patience, (2) changing how agents move (restricting the ability to move), and (3) heterogeneity of agent tolerance.
+The base model is the Schelling segregation model, which shows how even a mild preference for similar neighbors can lead to a much higher degree of segregation than we would intuitively expect. However, since the original model was based on several unrealistic assumptions, we attempted to address some of them by adding the following changes: (1) adding patience, (2) changing how agents move (restricting the ability to move), and (3) heterogeneity of agent tolerance.
 
 ## Design concepts
 
@@ -15,22 +15,22 @@ The basic design concepts are the same as the original model. In other words:
 
 **Who**: There are two types of agents. Majority and Minority.  The population ratio is user settable parameter.
 
-**Does what**: Each agent calculates whether the percentage of the different types of agents among his neighbor exceeds his tolerance. If it exceeds, the patience increases; if not, it decreases. Agents that exceed a certain tolerance level are moved to another cell. He can only move their surrounding cells in one step.
+**Does what**: Each agent calculates whether the percentage of the different types of agents among his neighbor exceeds his tolerance. If it exceeds, their impatience increases; if not, it decreases. Agents whose impatience increase past their patience level take action and move. They can only move to adjacent cells each step. 
 
-**How**: Agents on a 16*16 grid interact with one another in each step. We use random initialization, and all agents act simultaneously in each step. The agents have their own tolerance and patience levels, which follow the beta distribution.
+**How**: Agents on a 16*16 grid interact with one another in each step. We use random initialization, and all agents act simultaneously in each step. The agents have their own tolerance and patience levels, which follow a beta distribution.
 
 
 ## Details
 
 This section will focus on what we changed from the original model, and other points will be briefly discussed.
 
-First, we added patience. In the original model, unhappy agents were immediately moved to another available cell. In reality, however, agents are expected to move with some lag for various reasons, including the cost of moving and the time required to conduct a new house search (Information asymmetry may make it take longer to find a home). This parameter eliminates the immediate move by the unhappy agent.
+First, we added patience. In the original model, unhappy agents were immediately moved to another available cell. In reality, however, agents are expected to move with some lag for various reasons, including the cost of moving, the time required to conduct a new house search (information asymmetry may make it take longer to find a home), and hope that the situation will improve if they do not move. Agents have heterogenous patience levels, distributed according to a beta distribution, with the mean of the beta distribution being an adjustable parameter. 
 
-Second, we changed how agents move. In the original model, agents can move anywhere, no matter how far the new cell is. However, this assumption is also unrealistic because it fails to take into account the cost of moving. Therefore, we restrict the cells where the agents can move. Precisely, it can move to only 8 cells around itself. The agents must be moved further if the move does not improve their situation. However, they will no longer have to move unlimitedly around in all directions in the grid.
+Second, we changed how agents move. In the original model, agents can move anywhere, no matter how far the new cell is. However, this assumption is also unrealistic because it fails to take into account the cost of moving to farther locations. Therefore, we restrict the cells where the agents can move. Precisely, it moves (randomly) to one of cells in a 3x3 grid centered on itself that is empty. If the move does not improve their situation, the agent will move again on the next step. Thus, they can no longer move unlimitedly around in all directions in the grid.
 
-Lastly, we change the initialization method of intolerance.  Although the original model assumed that all agents had identical intolerance, it is natural to assume that there is heterogeneity in these preferences. Therefore, we assumed that intolerance follows a beta distribution, allowing for agents’ heterogeneity. We also use the same method for the initialization of patience. The mean of the distribution is a user settable parameter.
+Lastly, we change the initialization method of intolerance.  Although the original model assumed that all agents had identical intolerance, it is natural to assume that there is heterogeneity in these preferences. Therefore, we assumed that intolerance follows a beta distribution, allowing for agentsâ€™ heterogeneity. We also used the same method for the initialization of patience. The mean of the distribution is a user settable parameter. We used a beta distribution because it is the most natural distribution to use to simulate a parameter that is bounded on both ends. 
 
-These changes are intended to relax the previous model's overly strong assumptions and make the model more complex. In particular, the first two changes restrict the agent's ability to move and the speed of his decision to move. By varying these constraints (like moving ability or patience) and observing how the behavior of the model changes, we expect to get an indication of how cost constraints or information collection capacity issues affect segregation.
+These changes are intended to relax the previous model's overly strong assumptions and make the model more complex and realistic. In particular, the first two changes restrict the agent's ability to move and the speed of his decision to move. By varying these constraints (like moving ability or patience) and observing how the behavior of the model changes, we expect to get an indication of how cost constraints or information collection capacity issues affect segregation.
 
 
 -------------------------
