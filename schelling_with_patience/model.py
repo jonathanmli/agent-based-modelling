@@ -3,6 +3,7 @@ from mesa import Model
 from mesa.time import RandomActivation
 from mesa.space import SingleGrid
 from mesa.datacollection import DataCollector
+import numpy as np
 
 from agents import SegAgent
 
@@ -13,14 +14,20 @@ class SegModel(Model):
     width = height
 
     # adding agents to the world
-    def __init__(self, width, height, num_agents, minority_pc, intolerance):
+    def __init__(self, width, height, num_agents, minority_pc, intolerance, patience):
         self.num_agents = num_agents  # we're allowing these values to be set at each run
         self.minority_pc = minority_pc
-        self.intolerance = intolerance
+        self.mean_intolerance = intolerance
         self.width = width
         self.height = height
         self.grid = SingleGrid(width, height, torus=True)
         self.schedule = RandomActivation(self)
+        self.v_intolerance = 25
+        self.m_patience = patience
+        self.v_patience = 25
+
+        # ignore this, only for reporting
+        self.intolerance = intolerance
 
         # global measures for how agents are doing overall
         self.happy = 0
@@ -56,7 +63,10 @@ class SegModel(Model):
             x = self.random.randrange(self.grid.width)
             y = self.random.randrange(self.grid.height)
 
-            agent = SegAgent(i, self, self.agent_type)
+            intolerance = np.random.beta(self.mean_intolerance * self.v_intolerance, (1-self.mean_intolerance)*self.v_intolerance)
+            patience = np.random.beta(self.m_patience * self.v_patience, (1-self.m_patience)*self.v_patience)
+
+            agent = SegAgent(i, self, self.agent_type, intolerance, patience)
             self.schedule.add(agent)
             # self.grid.position_agent(agent, (x, y))
             self.grid.place_agent(agent, self.grid.find_empty())
@@ -104,13 +114,16 @@ class SegModel(Model):
         for agent in self.schedule.agents:
             self.neighbors_g += agent.neighbors_a
             self.similar_g += agent.similar
+            self.happy += agent.is_happy
 
             if agent.type == 0:
                 self.neighbors_g0 += agent.neighbors_a
                 self.similar_g0 += agent.similar0
+                self.happy0 += agent.is_happy
             else:
                 self.neighbors_g1 += agent.neighbors_a
                 self.similar_g1 += agent.similar1
+                self.happy1 += agent.is_happy
 
         self.schedule.step()
         self.datacollector.collect(self)

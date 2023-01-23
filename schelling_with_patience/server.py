@@ -72,6 +72,8 @@ model_params = {
     "minority_pc": UserSettableParameter('slider', "% group B", 0.35, 0.00, 1.0, 0.05),
     "intolerance": UserSettableParameter('slider', "Intolerance: (Desired % of matching neighbors) ",
                                           0.375, 0, 1, 0.125),
+    "patience": UserSettableParameter('slider', "Patience: (Patience level before moving) ",
+                                          0.5, 0, 1, 0.1),
 }
 
 # this is where we call the different elements we're going to be visualizing

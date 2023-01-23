@@ -8,17 +8,25 @@ from mesa.datacollection import DataCollector
 
 # set up and initialize the agents
 class SegAgent(Agent):
-    def __init__(self, pos, model, agent_type, patience_rate=0.2):  # agents and their characteristics
+    def __init__(self, pos, model, agent_type, intolerance = 0.375, patience=0.5):  # agents and their characteristics
         super().__init__(pos, model)
+        # constants
         self.pos = pos
         self.type = agent_type
+        self.patience = patience
+        self.intolerance = intolerance
+        
+
+        # variables
+        self.neighbors_a = 0  # count of neighbors for each agent (ignore empty squares)
+        self.a_pct_similar = 0  # calculate neighbor percents
+        self.impatience = 0 # the patience level of the agent. If patience >= 1, the agent moves
         self.similar = 0  # agent-specific measures of neighbor similarity
         self.similar0 = 0
         self.similar1 = 0
-        self.neighbors_a = 0  # count of neighbors for each agent (ignore empty squares)
-        self.a_pct_similar = 0  # calculate neighbor percents
-        self.patience = 0 # the patience level of the agent. If patience > 1, the agent moves
-        self.patience_rate = patience_rate
+        self.is_happy = False
+
+        
 
     # describe what happens in each step for the agents
     # agents check surroundings and count neighbors of the same type
@@ -44,29 +52,16 @@ class SegAgent(Agent):
 
         # If unhappy, increase patience:
         # this permits different types to have different group thresholds
-        if self.type == 0:
-            if self.similar < 8 * self.model.intolerance:
-                # self.model.grid.move_to_empty(self)
-                self.patience += self.patience_rate
-                if self.patience >= 1:
-                    self.model.grid.move_to_empty(self)
-
-            else:
-                self.patience -= self.patience_rate
-                self.patience = max(0, self.patience)
-                self.model.happy += 1
-                self.model.happy0 += 1
+        if self.similar < 8 * self.intolerance:
+            self.impatience += 0.1
+            self.impatience = min(self.impatience, self.patience)
+            self.is_happy = False
+            if self.impatience >= self.patience:
+                self.move()
         else:
-            if self.similar < 8 * self.model.intolerance:
-                self.patience += self.patience_rate
-                if self.patience >= 1:
-                    self.model.grid.move_to_empty(self)
-            else:
-                self.model.happy += 1
-                self.model.happy1 += 1
-                self.patience -= self.patience_rate
-                self.patience = max(0, self.patience)
-
+            self.impatience -= 0.1
+            self.impatience = max(0, self.patience)
+            self.is_happy = True
 
         if self.neighbors_a > 0:
             self.a_pct_similar = round(100 * self.similar / self.neighbors_a, 1)
@@ -75,11 +70,15 @@ class SegAgent(Agent):
 
     # set up the actions available to agents
     def move(self):
-        possible_steps = self.model.grid.get_neighborhood(
+        neighborhood = self.model.grid.get_neighborhood(
             self.pos,
             moore=False,
-            include_center=True
+            include_center=False
         )
+        possible_steps = [self.pos]
+        for xy in neighborhood:
+            if self.model.grid.is_cell_empty(xy):
+                possible_steps += [xy]
         new_position = self.random.choice(possible_steps)
         self.model.grid.move_agent(self, new_position)
 
