@@ -51,6 +51,7 @@ model_params = {
     # The following line is an example to showcase StaticText.
     "title": mesa.visualization.StaticText("Parameters:"),
     "grass": mesa.visualization.Checkbox("Grass Enabled", True),
+    "step_by_type": mesa.visualization.Checkbox("step_by_type", True),
     "grass_regrowth_time": mesa.visualization.Slider("Grass Regrowth Time", 20, 1, 50),
     "initial_sheep": mesa.visualization.Slider(
         "Initial Sheep Population", 100, 10, 300
