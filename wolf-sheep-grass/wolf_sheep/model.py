@@ -54,6 +54,7 @@ class WolfSheep(mesa.Model):
         grass_regrowth_time=30,
         sheep_gain_from_food=4,
         step_by_type=True,
+        sigma = 0.05,
     ):
         """
         Create a new Wolf-Sheep model with the given parameters.
@@ -82,6 +83,7 @@ class WolfSheep(mesa.Model):
         self.grass_regrowth_time = grass_regrowth_time
         self.sheep_gain_from_food = sheep_gain_from_food
         self.step_by_type = step_by_type
+        self.sigma = sigma
 
         self.schedule = RandomActivationByTypeFiltered(self)
         self.grid = mesa.space.MultiGrid(self.width, self.height, torus=True)

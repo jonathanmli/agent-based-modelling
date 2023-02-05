@@ -25,9 +25,9 @@ class Sheep(RandomWalker):
             # Create a new sheep:
             if self.model.grass:
                 self.energy /= 2
-            # new_reproduction = self.reproduction + self.random.i
+            new_reproduction = max(min(1,self.reproduction + self.random.gauss(0,self.model.sigma)),0)
             lamb = Sheep(
-                self.model.next_id(), self.pos, self.model, self.moore, self.energy, self.reproduction
+                self.model.next_id(), self.pos, self.model, self.moore, self.energy, new_reproduction
             )
             self.model.grid.place_agent(lamb, self.pos)
             self.model.schedule.add(lamb)
@@ -66,9 +66,10 @@ class Wolf(RandomWalker):
 
     energy = None
 
-    def __init__(self, unique_id, pos, model, moore, energy=None):
+    def __init__(self, unique_id, pos, model, moore, energy=None, reproduction=0.05):
         super().__init__(unique_id, pos, model, moore=moore)
         self.energy = energy
+        self.reproduction = reproduction
 
     def step(self):
         self.energy -= 1
@@ -82,8 +83,9 @@ class Wolf(RandomWalker):
             if self.random.random() < self.model.wolf_reproduce:
                 # Create a new wolf cub
                 self.energy /= 2
+                new_reproduction = max(min(1,self.reproduction + self.random.gauss(0,self.model.sigma)),0)
                 cub = Wolf(
-                    self.model.next_id(), self.pos, self.model, self.moore, self.energy
+                    self.model.next_id(), self.pos, self.model, self.moore, self.energy, new_reproduction
                 )
                 self.model.grid.place_agent(cub, cub.pos)
                 self.model.schedule.add(cub)
