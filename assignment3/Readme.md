@@ -65,7 +65,7 @@ These two folders have the same structure.
 * ``batch_run.py``: run batch runner.
 * ``visualize.py``: code for plotting.
 * ``data/``: contain the result of batch run. original.csv is the result of original model, and updated.csv is the result of the model we made in assignment2.
-* ``data/``: contain the plots for the assignment.
+* ``plots/``: contain the plots for the assignment.
 
 
 ## Further Reading
