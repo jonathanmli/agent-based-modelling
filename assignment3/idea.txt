@@ -19,12 +19,16 @@ idea for assignment3
 
     Just make sure the initialization matters or not in this model
 
-    -- if not, compare the original vs intelligent model. The rule change should matter because the result was totally different.
+    -- if not, compare the original vs intelligent model. The rule change should matter because the result was 
+	totally different.
 
 2. gross_regrowth_time
 
-    This can be interpreted as "climate shock." Due to climate change or some reason, the rainfall would be vary and this affects the gross regrowth. By changing this parameter, we can evaluate the impact of the climete shock on the wolves and sheep.
+    This can be interpreted as "climate shock." Due to climate change or some reason, the rainfall would be vary
+    and this affects the gross regrowth. By changing this parameter, we can evaluate the impact of the climete shock on the wolves and sheep.
 
 3 & 4. initial sheep
     
-    This can be interpreted as the population density and relative size of each species. Each area has characteristic, like some areas has a lot of sheep compare to wolves, or vice versa. If this setting is matter, we have to careful about the initial setting.
+    This can be interpreted as the population density and relative size of each species. Each area has characteristic,
+    like some areas has a lot of sheep compare to wolves, or vice versa. If this setting is matter, we have to careful
+    about the initial setting.

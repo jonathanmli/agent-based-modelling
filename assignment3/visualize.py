@@ -34,13 +34,15 @@ def group_plot(by ,var):
 # quick check, activation does not matter
 for v in agents:
     group_plot(by='step_by_type', var = v)
-    plt.show()
+    plt.savefig(f'plots/step_by_type_{v}.png')
+    plt.close()
 
 ## 1.2 the rule change is matter?
 #  changing agent rule has some impact on the pass
 for v in agents:
     group_plot(by='agent_type', var = v)
-    plt.show()
+    plt.savefig(f'plots/agent_type_{v}.png')
+    plt.close()
 
 # 2. vary the initial setting -----------------------------
 # vary the density and relative population of wolf and sheep
@@ -57,6 +59,7 @@ g = sns.FacetGrid(df_10step, row="initial_sheep",
                   )
 g.add_legend()
 g.map(sns.kdeplot, "Wolves")
+plt.savefig('plots/distribution_wolves')
 # it is similar even though we change the agent behaviour
 # initial population of sheep does not have impact
 # initial population of wolves have impact
@@ -73,6 +76,7 @@ g = sns.FacetGrid(df_10step, row="initial_sheep",
                   )
 g.add_legend()
 g.map(sns.kdeplot, "Sheep")
+plt.savefig('plots/distribution_Sheep')
 # the rule change affects significantly on sheeps population
 # if there are more wolves, sheep tend to extinct early
 # the initial number of sheep does not matter
@@ -95,6 +99,7 @@ sns.lmplot(data=temp, x='Step', y='Wolves', hue = 'grass_regrowth_time',
            legend_out = False,
            order=4,
            scatter_kws={"s": 10, 'alpha':0.2})
+plt.savefig('plots/climate_effect_wolves')
 
 # the sheep paths are similar
 sns.lmplot(data=temp, x='Step', y='Sheep', hue = 'grass_regrowth_time',
@@ -102,6 +107,7 @@ sns.lmplot(data=temp, x='Step', y='Sheep', hue = 'grass_regrowth_time',
            legend_out = False,
            order=4,
            scatter_kws={"s": 10, 'alpha':0.2})
+plt.savefig('plots/climate_effect_Sheep')
 
 # the Grass path
 sns.lmplot(data=temp, x='Step', y='Grass', hue = 'grass_regrowth_time',
@@ -109,5 +115,6 @@ sns.lmplot(data=temp, x='Step', y='Grass', hue = 'grass_regrowth_time',
            legend_out = False,
            order=4,
            scatter_kws={"s": 10, 'alpha':0.2})
+plt.savefig('plots/climate_effect_Grass')
 
 # wolf paths are more likely to be affected by the climate change. it is interesting result
