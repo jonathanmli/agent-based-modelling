@@ -15,6 +15,11 @@ model_params = {
         value="Random",
         choices=list(PdGrid.schedule_types.keys()),
     ),
+    "payoff_type":mesa.visualization.Choice(
+        "Payoff type",
+        value="pd",
+        choices=list(PdGrid.payoff_type.keys()),
+    ),
 }
 
 server = mesa.visualization.ModularServer(
