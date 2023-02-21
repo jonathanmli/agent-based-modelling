@@ -55,7 +55,7 @@ class PdGrid(mesa.Model):
             {
                 "Cooperating_Agents": lambda m: len([a for a in m.schedule.agents if a.move == "C"]),
                 "Avg_Weight0": lambda m: np.mean([a.action0Weight for a in m.schedule.agents]),
-                "Ct_Weight0 > 0.5": lambda m: len([a for a in m.schedule.agents if a.weight0 > 0.5])
+                "Ct_Weight0 > 0.5": lambda m: len([a for a in m.schedule.agents if a.action0Weight > 0.5])
             }
         )
 
