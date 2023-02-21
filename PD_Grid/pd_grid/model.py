@@ -1,5 +1,6 @@
 import mesa
-import random 
+import random
+import numpy as np
 
 from .agent import PDAgent
 
@@ -52,9 +53,9 @@ class PdGrid(mesa.Model):
 
         self.datacollector = mesa.DataCollector(
             {
-                "Cooperating_Agents": lambda m: len(
-                    [a for a in m.schedule.agents if a.move == "C"]
-                )
+                "Cooperating_Agents": lambda m: len([a for a in m.schedule.agents if a.move == "C"]),
+                "Avg_Weight0": lambda m: np.mean([a.action0Weight for a in m.schedule.agents]),
+                "Ct_Weight0 > 0.5": lambda m: len([a for a in m.schedule.agents if a.weight0 > 0.5])
             }
         )
 
