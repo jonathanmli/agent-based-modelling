@@ -24,8 +24,8 @@ class PdGrid(mesa.Model):
     def __init__(
         self, width=50, height=50, schedule_type="Random", payoffs=None, seed=10, payoff_type='pd'
     ):
-    
-        """
+
+        """/
         Create a new Spatial Prisoners' Dilemma Model.
 
         Args:
