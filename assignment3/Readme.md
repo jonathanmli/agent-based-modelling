@@ -60,8 +60,9 @@ These two folders have the same structure.
 * ``wolf_sheep/model.py``: Defines the Wolf-Sheep Predation model itself
 * ``wolf_sheep/server.py``: Sets up the interactive visualization server
 
-
+--------------------------------------------
 * ``run.py``: Launches a model visualization server.
+* ``single_run.py``: run single run and save data.
 * ``batch_run.py``: run batch runner.
 * ``visualize.py``: code for plotting.
 * ``data/``: contain the result of batch run. original.csv is the result of original model, and updated.csv is the result of the model we made in assignment2.
