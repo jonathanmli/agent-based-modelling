@@ -16,15 +16,16 @@ class PdGrid(mesa.Model):
 
     # This dictionary holds the payoff for this agent,
     # keyed on: (my_move, other_move)
-    payoff_type = {
+    payoff_dic = {
         'pd': {("C", "C"): 2, ("C", "D"): 0, ("D", "C"): 3, ("D", "D"): 1},
         'sh': {("C", "C"): 3, ("C", "D"): 0, ("D", "C"): 2, ("D", "D"): 1}
     }
 
     def __init__(
-        self, width=50, height=50, schedule_type="Random", payoffs=None, seed=10, payoff_type='pd'
+        self, width=50, height=50, schedule_type="Random", payoffs=None, seed=10, payoff_type='pd', payoff_dic = payoff_dic
     ):
-        """
+
+        """/
         Create a new Spatial Prisoners' Dilemma Model.
 
         Args:
@@ -40,10 +41,12 @@ class PdGrid(mesa.Model):
         self.grid = mesa.space.SingleGrid(width, height, torus=True)
         self.schedule_type = schedule_type
         self.schedule = self.schedule_types[self.schedule_type](self)
+        self.payoff_type = payoff_type
+        self.payoff_dic = payoff_dic
+        self.payoff = self.payoff_dic[self.payoff_type]
         
         
-        
-
+    
         # Create agents
         for x in range(width):
             for y in range(height):
