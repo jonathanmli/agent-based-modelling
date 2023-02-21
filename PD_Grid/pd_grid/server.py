@@ -18,7 +18,7 @@ model_params = {
     "payoff_type":mesa.visualization.Choice(
         "Payoff type",
         value="pd",
-        choices=list(PdGrid.payoff_type.keys()),
+        choices=list(PdGrid.payoff_types.keys()),
     ),
 }
 
