@@ -6,9 +6,6 @@ from .agent import PDAgent
 
 class PdGrid(mesa.Model):
     """Model class for iterated, spatial prisoner's dilemma model."""
-
-    # working with random seed
-    seed = 10 # can replace 10 with random.random()
     
     schedule_types = {
         "Sequential": mesa.time.BaseScheduler,
@@ -18,11 +15,13 @@ class PdGrid(mesa.Model):
 
     # This dictionary holds the payoff for this agent,
     # keyed on: (my_move, other_move)
-
-    payoff = {("C", "C"): 1, ("C", "D"): 0, ("D", "C"): 1.6, ("D", "D"): 0}
+    payoff_type = {
+        'pd': {("C", "C"): 2, ("C", "D"): 0, ("D", "C"): 3, ("D", "D"): 1},
+        'sh': {("C", "C"): 3, ("C", "D"): 0, ("D", "C"): 2, ("D", "D"): 1}
+    }
 
     def __init__(
-        self, width=50, height=50, schedule_type="Random", payoffs=None, seed=seed
+        self, width=50, height=50, schedule_type="Random", payoffs=None, seed=10, payoff_type='pd'
     ):
         """
         Create a new Spatial Prisoners' Dilemma Model.
