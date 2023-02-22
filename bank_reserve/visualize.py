@@ -27,7 +27,7 @@ df.columns
 
 ## 1.1 the effect on aggregated data-------------------------------------------
 # the effect on the average wealth
-df_g = df.groupby(['Run','Step'])['loan_interest','reserve_percent','risk_mu',
+df_g = df.groupby(['RunId','Step'])['loan_interest','reserve_percent','risk_mu',
                                   'Wealth','Rich','Poor','Middle Class'].mean().reset_index()
 
 # total wealth path
