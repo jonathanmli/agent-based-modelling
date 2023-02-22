@@ -72,6 +72,8 @@ class Person(RandomWalker):
         self.savings = 0
         # total loan amount person has outstanding
         self.loans = 0
+        # total risky asset
+        self.risk_asset = 0
         """start everyone off with a random amount in their wallet from 1 to a
            user settable rich threshold amount"""
         self.wallet = self.random.randint(1, rich_threshold + 1)
@@ -155,7 +157,7 @@ class Person(RandomWalker):
                 self.withdraw_from_savings(self.savings)
                 self.repay_a_loan(self.wallet)
         # calculate my wealth
-        self.wealth = self.savings - self.loans
+        self.wealth = self.savings + self.risk_asset - self.loans
 
     # part of balance_books()
     def deposit_to_savings(self, amount):
@@ -199,6 +201,8 @@ class Person(RandomWalker):
             self.get_interest_payment()
         if self.loans > 0:
             self.pay_interest_payment()
+        if self.risk_asset > 0:
+            self.sell_risk_asset()
     
     # part of settlement()
     def get_interest_payment(self):
@@ -223,24 +227,29 @@ class Person(RandomWalker):
         self.loans += interest_payment_to_bank
         # bank total outstanding loan increase
         #self.bank.bank_loans += interest_payment_to_bank
-        
+
+    def sell_risk_asset(self):
+        # get prifit pct . it is drown from gauss distribution
+        investment_profit_pct = self.random.gauss(self.model.risk_mu, self.model.risk_sigma)
+        # increase or decrease the amount of all risk asset depends on the profit pct
+        self.risk_asset += self.risk_asset * (investment_profit_pct / 100)
+        # return their profit to bank deposit
+        self.savings += self.risk_asset
+        self.bank.deposits += self.risk_asset
+        self.risk_asset = 0
+        #print(f'i am rich so i investment {money_for_investment}')
+
     def investment(self):
         """ If i is rich, they start buy risky asset"""
         if self.wealth > self.model.rich_threshold:
             # deside the amount of the investment
-            money_for_investment = self.savings *0.2 # 0.2 is hard cording
+            self.money_for_investment = self.savings *0.2 # 0.2 is hard cording
             # take out the money from their bank to investment
-            self.savings -= money_for_investment
-            self.bank.deposits -= money_for_investment
+            self.savings -= self.money_for_investment
+            self.bank.deposits -= self.money_for_investment
             # buy risky asset
-            # get prifit pct . it is drown from gauss distribution
-            investment_profit_pct = self.random.gauss(self.model.risk_mu, self.model.risk_sigma)
-            # increase or decrease the amount of all risk asset depends on the profit pct
-            money_for_investment += money_for_investment * (investment_profit_pct / 100)
-            # return their profit to bank deposit
-            self.savings += money_for_investment 
-            self.bank.deposits += money_for_investment
-            #print(f'i am rich so i investment {money_for_investment}')
+            self.risk_asset += self.money_for_investment
+            self.money_for_investment = 0
         
     # step is called for each agent in model.BankReservesModel.schedule.step()
     def step(self):
