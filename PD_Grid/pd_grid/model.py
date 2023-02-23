@@ -16,13 +16,13 @@ class PdGrid(mesa.Model):
 
     # This dictionary holds the payoff for this agent,
     # keyed on: (my_move, other_move)
-    payoff_dic = {
-        'pd': {("C", "C"): 2, ("C", "D"): 0, ("D", "C"): 3, ("D", "D"): 1},
+    payoff_types = {
+        "pd": {("C", "C"): 2, ("C", "D"): 0, ("D", "C"): 3, ("D", "D"): 1},
         'sh': {("C", "C"): 3, ("C", "D"): 0, ("D", "C"): 2, ("D", "D"): 1}
     }
 
     def __init__(
-        self, width=50, height=50, schedule_type="Random", payoffs=None, seed=10, payoff_type='pd', payoff_dic = payoff_dic
+        self, width=50, height=50, schedule_type="Random", payoffs=None, seed=10, payoff_type='pd'
     ):
 
         """/
@@ -42,8 +42,7 @@ class PdGrid(mesa.Model):
         self.schedule_type = schedule_type
         self.schedule = self.schedule_types[self.schedule_type](self)
         self.payoff_type = payoff_type
-        self.payoff_dic = payoff_dic
-        self.payoff = self.payoff_dic[self.payoff_type]
+        self.payoff = self.payoff_types[self.payoff_type]
         
         
     
@@ -56,7 +55,7 @@ class PdGrid(mesa.Model):
 
         self.datacollector = mesa.DataCollector(
             {
-                "Cooperating_Agents": lambda m: len([a for a in m.schedule.agents if a.move == "C"]),
+                #"Cooperating_Agents": lambda m: len([a for a in m.schedule.agents if a.move == "C"]),
                 "Avg_Weight0": lambda m: np.mean([a.action0Weight for a in m.schedule.agents]),
                 "Ct_Weight0 > 0.5": lambda m: len([a for a in m.schedule.agents if a.action0Weight > 0.5])
             }
