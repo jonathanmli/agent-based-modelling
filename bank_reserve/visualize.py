@@ -27,20 +27,29 @@ df.columns
 
 ## 1.1 the effect on aggregated data-------------------------------------------
 # the effect on the average wealth
-df_g = df.groupby(['RunId','Step'])['loan_interest','reserve_percent','risk_mu',
+df_g = df.groupby(['Run','Step'])['loan_interest','reserve_percent','risk_mu',
                                   'Wealth','Rich','Poor','Middle Class'].mean().reset_index()
 
 # total wealth path
 # by changing loan_interest
+fig, ax = plt.subplots(figsize=(8,6))
 sns.lineplot(df_g, x='Step', y='Wealth', hue='loan_interest')
+plt.savefig('plots/path_wealth_interestrate.png')
+
 # by changing reserve ratio
+fig, ax = plt.subplots(figsize=(8,6))
 sns.lineplot(df_g, x='Step', y='Wealth', hue='reserve_percent')
+plt.savefig('plots/path_wealth_reserveratio.png')
+
 # by changing risk_mu
+fig, ax = plt.subplots(figsize=(8,6))
 sns.lineplot(df_g, x='Step', y='Wealth', hue='risk_mu')
+plt.savefig('plots/path_wealth_risk_mu.png')
 
-
+"""
 # total number of the rich people
 # by changing loan_interest
+
 sns.lineplot(df_g, x='Step', y='Rich', hue='loan_interest')
 # by changing reserve ratio
 sns.lineplot(df_g, x='Step', y='Rich', hue='reserve_percent')
@@ -56,23 +65,32 @@ sns.lineplot(df_g, x='Step', y='Poor', hue='risk_mu')
 
 g = sns.FacetGrid(df_g, col="loan_interest", row="risk_mu")
 g.map(sns.histplot, "Wealth")
-
+"""
 
 ## 1.2 distribution of the wealth -------------------------------------------------
 df100 = df[df['Step']==100]
 
 # change loan_interest
 sns.violinplot(df100, x='loan_interest', y='Wealth')
+
+fig, ax = plt.subplots(figsize=(8,6))
 sns.kdeplot(df100, x='Wealth', hue ='loan_interest')
+plt.savefig('plots/wealth_distribution_interestrate.png')
 
 # change reservation ratio
 sns.violinplot(df100, x='reserve_percent', y='Wealth')
+
+fig, ax = plt.subplots(figsize=(8,6))
 sns.kdeplot(df100, x='Wealth', hue ='reserve_percent')
+plt.savefig('plots/wealth_distribution_reserveratio.png')
 
 # change risk_mu
 sns.boxplot(df100, x='risk_mu', y='Wealth')
 sns.violinplot(df100, x='risk_mu', y='Wealth')
+
+fig, ax = plt.subplots(figsize=(8,6))
 sns.kdeplot(df100, x='Wealth', hue ='risk_mu')
+plt.savefig('plots/wealth_distribution_risk_mu.png')
 
 ## 1.3 some metrics of inequality
 
