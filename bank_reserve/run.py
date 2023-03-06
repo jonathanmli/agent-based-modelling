@@ -1,3 +1,3 @@
-from bank_reserves.server import server
+from bank_asset.server import server
 
 server.launch()
