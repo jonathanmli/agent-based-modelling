@@ -27,11 +27,11 @@ df.columns
 ## 1.1 the effect on aggregated data-------------------------------------------
 # the effect on the average wealth
 df_g = df.groupby(['RunId','Step'])['loan_interest','reserve_percent','risk_mu',
-                                  'Wealth','Rich','Poor','Middle Class','gini','gini2'].mean().reset_index()
+                                  'Wealth','Rich','Poor','Middle Class','gini','gini2','std'].mean().reset_index()
 
 
-pal2 = sns.cubehelix_palette(start=0, rot=0, dark=0.1, light=.7, as_cmap=True)
-pal3 = sns.cubehelix_palette(start=1, rot=0, dark=0, light=.7, as_cmap=True)
+pal2 = sns.cubehelix_palette(start=0, rot=0, dark=0, light=.7, as_cmap=True)
+pal3 = sns.cubehelix_palette(start=2, rot=0, dark=0, light=.7, as_cmap=True)
 
 
 sns.set(font_scale=1.5)
@@ -40,41 +40,49 @@ sns.set(font_scale=1.5)
 # by changing loan_interest
 fig, ax = plt.subplots(figsize=(9,6))
 sns.lineplot(df_g, x='Step', y='Wealth',
-             hue='loan_interest', palette=pal2).set(title='the effect of interest rate on total wealth')
+             hue='loan_interest', palette=pal2)
+ax.set(title='the effect of interest rate on total wealth')
 plt.savefig('plots/path_wealth_interestrate.png')
 
 # by changing reserve ratio
 fig, ax = plt.subplots(figsize=(9,6))
-sns.lineplot(df_g, x='Step', y='Wealth', hue='reserve_percent').set(title='the effect of reserve ratio on total wealth')
+sns.lineplot(df_g, x='Step', y='Wealth', hue='reserve_percent')
+ax.set(title='the effect of reserve ratio on total wealth')
 plt.savefig('plots/path_wealth_reserveratio.png')
 
 # by changing risk_mu
 fig, ax = plt.subplots(figsize=(9,6))
 sns.lineplot(df_g, x='Step', y='Wealth',
-             hue='risk_mu', palette=pal3).set(title='the effect of risk asset on total wealth')
+             hue='risk_mu', palette=pal3)
+ax.set(title='the effect of risk asset on total wealth')
 plt.savefig('plots/path_wealth_risk_mu.png')
 
 
 ## 1.2 distribution of the wealth -------------------------------------------------
 df100 = df[df['Step']==100]
 sns.set(font_scale=1.5)
+sns.set_style("whitegrid")
+
 # change loan_interest
 fig, ax = plt.subplots(figsize=(9,6))
 sns.kdeplot(df100, x='Wealth',
-            hue ='loan_interest', palette=pal2).set(title='the effect of interest rate on wealth distribution')
+            hue ='loan_interest', palette=pal2)
+ax.set(title='the effect of interest rate on wealth distribution')
 ax.set(xlabel='Wealth (after 100 steps)')
 plt.savefig('plots/wealth_distribution_interestrate.png')
 
 # change reservation ratio
 fig, ax = plt.subplots(figsize=(9,6))
-sns.kdeplot(df100, x='Wealth', hue ='reserve_percent').set(title='the effect of reserve ratio on wealth distribution')
+sns.kdeplot(df100, x='Wealth', hue ='reserve_percent')
+ax.set(title='the effect of reserve ratio on wealth distribution')
 ax.set(xlabel='Wealth (after 100 steps)')
 plt.savefig('plots/wealth_distribution_reserveratio.png')
 
 # change risk_mu
 fig, ax = plt.subplots(figsize=(9,6))
 sns.kdeplot(df100, x='Wealth', hue ='risk_mu',
-            palette=pal3).set(title='the effect of risk asset on wealth distribution')
+            palette=pal3)
+ax.set(title='the effect of risk asset on wealth distribution')
 ax.set(xlabel='Wealth (after 100 steps)')
 plt.savefig('plots/wealth_distribution_risk_mu.png')
 
@@ -83,15 +91,31 @@ df100_g =df_g[df_g['Step']==100]
 
 # gini of the risk mu
 fig, ax = plt.subplots(figsize=(8,6))
-sns.boxplot(data=df100_g, y='gini',x='risk_mu').set(title='the effect of risk asset on gini index')
+sns.boxplot(data=df100_g, y='gini',x='risk_mu', palette="mako")
+ax.set(title='the effect of risk asset on gini index')
 ax.set(ylabel='gini_index')
 plt.savefig('plots/gini_risk_mu.png')
 
-# gini of the risk mu
+# std
 fig, ax = plt.subplots(figsize=(8,6))
-sns.boxplot(data=df100_g, y='gini2',x='loan_interest').set(title='the effect of loan interest on gini index')
+sns.boxplot(data=df100_g, y='std',x='risk_mu', palette="flare")
+ax.set(title='the effect of risk asset on std of wealth')
+ax.set(ylabel='standard deviation of wealth')
+plt.savefig('plots/std_risk_mu.png')
+
+# gini of the loan interest
+fig, ax = plt.subplots(figsize=(8,6))
+sns.boxplot(data=df100_g, y='gini2',x='loan_interest', palette="mako")
+ax.set(title='the effect of loan interest on gini index')
 ax.set(ylabel='gini_index')
 plt.savefig('plots/gini_loan_interest.png')
+
+# std
+fig, ax = plt.subplots(figsize=(8,6))
+sns.boxplot(data=df100_g, y='std',x='loan_interest', palette="flare")
+ax.set(title='the effect of interest rate on std of wealth')
+ax.set(ylabel='standard deviation of wealth')
+plt.savefig('plots/std_loan_interest.png')
 
 ## 1.4 ----------------------------------------------------------------------------
 # combine plots for the paper
@@ -120,7 +144,13 @@ get_concat_h(im1, im2).save('plots/risk_mu.png')
 
 #
 im1 = Image.open('plots/gini_risk_mu.png')
-im2 = Image.open('plots/gini_loan_interest.png')
+im2 = Image.open('plots/std_risk_mu.png')
 
-get_concat_h(im1, im2).save('plots/gini.png')
+get_concat_h(im1, im2).save('plots/var_risk_mu.png')
+
+#
+im1 = Image.open('plots/gini_loan_interest.png')
+im2 = Image.open('plots/std_loan_interest.png')
+
+get_concat_h(im1, im2).save('plots/var_loan_interest.png')
 

@@ -72,12 +72,18 @@ def get_total_money(model):
     # return sum of agents' wallets and savings for total money
     return wallet_money + savings_money
 
-
 def get_total_loans(model):
     # list of amounts of all agents' loans
     agent_loans = [a.loans for a in model.schedule.agents]
     # return sum of all agents' loans
     return np.sum(agent_loans)
+
+def wealth_sd(model):
+    # get agent wealth
+    agent_wealth = [a.wealth for a in model.schedule.agents]
+    # convert the list to a numpy array
+    x = np.array(agent_wealth)
+    return np.std(x)
 
 def gini_coefficient(model):
     # get agent wealth
@@ -85,19 +91,13 @@ def gini_coefficient(model):
     # convert the list to a numpy array
     x = np.array(agent_wealth)
     if max(x) == 0:
-        gini_coef = 0
+        return 0
     else:
-        x_min = min(x)
-        x = x - x_min
-        # sort the array in ascending order
-        sorted_x = np.sort(x)
-        # calculate cumulative sum
-        cumx = np.cumsum(sorted_x)
-        # calculate the Lorenz curve values
-        Lorenz_curve = cumx / cumx[-1]
-        # calculate the Gini coefficient using the area formula
-        gini_coef = 1 - 2 * np.trapz(Lorenz_curve, np.linspace(0, 1, len(x)))
-    return gini_coef
+        x = x - np.min(x)
+        total = 0
+        for i, xi in enumerate(x[:-1], 1):
+            total += np.sum(np.abs(xi - x[i:]))
+    return total / (len(x)**2 * np.mean(x))
 
 def gini_coefficient2(model):
     # get agent wealth
@@ -189,6 +189,7 @@ class BankReserves(mesa.Model):
                 "Loans": get_total_loans,
                 "gini": gini_coefficient,
                 "gini2": gini_coefficient2,
+                "std": wealth_sd,
             },
             agent_reporters={"Wealth": lambda x: x.wealth},
         )
