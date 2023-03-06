@@ -3,6 +3,7 @@ import itertools
 import mesa
 import numpy as np
 import pandas as pd
+from scipy import stats
 
 from bank_reserves.agents import Bank, Person
 from bank_reserves.model import BankReserves
@@ -71,6 +72,46 @@ def get_total_loans(model):
     # return sum of all agents' loans
     return np.sum(agent_loans)
 
+def wealth_sd(model):
+    # get agent wealth
+    agent_wealth = [a.wealth for a in model.schedule.agents]
+    # convert the list to a numpy array
+    x = np.array(agent_wealth)
+    return np.std(x)
+
+def gini_coefficient(model):
+    # get agent wealth
+    agent_wealth = [a.wealth for a in model.schedule.agents]
+    # convert the list to a numpy array
+    x = np.array(agent_wealth)
+    if max(x) == 0:
+        return 0
+    else:
+        x = x - np.min(x)
+        total = 0
+        for i, xi in enumerate(x[:-1], 1):
+            total += np.sum(np.abs(xi - x[i:]))
+    return total / (len(x)**2 * np.mean(x))
+
+def gini_coefficient2(model):
+    # get agent wealth
+    agent_saving = [a.savings for a in model.schedule.agents]
+    # convert the list to a numpy array
+    x = np.array(agent_saving)
+    if max(x) == 0:
+        gini_coef = 0
+    else:
+        x_min = min(x)
+        x = x - x_min
+        # sort the array in ascending order
+        sorted_x = np.sort(x)
+        # calculate cumulative sum
+        cumx = np.cumsum(sorted_x)
+        # calculate the Lorenz curve values
+        Lorenz_curve = cumx / cumx[-1]
+        # calculate the Gini coefficient using the area formula
+        gini_coef = 1 - 2 * np.trapz(Lorenz_curve, np.linspace(0, 1, len(x)))
+    return gini_coef
 
 def track_params(model):
     return (model.init_people, model.rich_threshold, model.reserve_percent)
@@ -79,13 +120,11 @@ def track_params(model):
 def track_run(model):
     return model.uid
 
-
-
 # parameter lists for each parameter to be tested in batch run
 br_params = {
     "init_people": [100],
     "rich_threshold": [10],
-    "reserve_percent": [10, 20, 30],
+    "reserve_percent": [0, 20, 40],
     "loan_interest": [1, 2, 3],
     "risk_mu": [3, 5, 7],
     "risk_sigma": [5]
