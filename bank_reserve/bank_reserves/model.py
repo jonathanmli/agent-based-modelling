@@ -11,6 +11,7 @@ Author of NetLogo code:
 
 import mesa
 import numpy as np
+from scipy import stats
 
 from bank_reserves.agents import Bank, Person
 
@@ -77,6 +78,46 @@ def get_total_loans(model):
     agent_loans = [a.loans for a in model.schedule.agents]
     # return sum of all agents' loans
     return np.sum(agent_loans)
+
+def gini_coefficient(model):
+    # get agent wealth
+    agent_wealth = [a.wealth for a in model.schedule.agents]
+    # convert the list to a numpy array
+    x = np.array(agent_wealth)
+    if max(x) == 0:
+        gini_coef = 0
+    else:
+        x_min = min(x)
+        x = x - x_min
+        # sort the array in ascending order
+        sorted_x = np.sort(x)
+        # calculate cumulative sum
+        cumx = np.cumsum(sorted_x)
+        # calculate the Lorenz curve values
+        Lorenz_curve = cumx / cumx[-1]
+        # calculate the Gini coefficient using the area formula
+        gini_coef = 1 - 2 * np.trapz(Lorenz_curve, np.linspace(0, 1, len(x)))
+    return gini_coef
+
+def gini_coefficient2(model):
+    # get agent wealth
+    agent_saving = [a.savings for a in model.schedule.agents]
+    # convert the list to a numpy array
+    x = np.array(agent_saving)
+    if max(x) == 0:
+        gini_coef = 0
+    else:
+        x_min = min(x)
+        x = x - x_min
+        # sort the array in ascending order
+        sorted_x = np.sort(x)
+        # calculate cumulative sum
+        cumx = np.cumsum(sorted_x)
+        # calculate the Lorenz curve values
+        Lorenz_curve = cumx / cumx[-1]
+        # calculate the Gini coefficient using the area formula
+        gini_coef = 1 - 2 * np.trapz(Lorenz_curve, np.linspace(0, 1, len(x)))
+    return gini_coef
 
 
 class BankReserves(mesa.Model):
@@ -146,6 +187,8 @@ class BankReserves(mesa.Model):
                 "Wallets": get_total_wallets,
                 "Money": get_total_money,
                 "Loans": get_total_loans,
+                "gini": gini_coefficient,
+                "gini2": gini_coefficient2,
             },
             agent_reporters={"Wealth": lambda x: x.wealth},
         )
