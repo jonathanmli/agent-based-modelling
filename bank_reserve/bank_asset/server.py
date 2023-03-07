@@ -13,11 +13,13 @@ Author of original code: Taylor Mutch
 
 # The colors here are taken from Matplotlib's tab10 palette
 # Green
-RICH_COLOR = "#2ca02c"
+BIG_COLOR = "#2ca02c"
 # Red
-POOR_COLOR = "#d62728"
+BANKRUPT_COLOR = "#d62728"
 # Blue
-MID_COLOR = "#1f77b4"
+SMALL_COLOR = "#1f77b4"
+# Black
+TEXT_COLOR = "#000000"
 
 
 def person_portrayal(agent):
@@ -32,17 +34,19 @@ def person_portrayal(agent):
         portrayal["r"] = 0.5
         portrayal["Layer"] = 0
         portrayal["Filled"] = "true"
+        portrayal["text"] = int(agent.valuation())
+        portrayal["text_color"] = TEXT_COLOR
 
-        color = MID_COLOR
+        color = SMALL_COLOR
 
         # set agent color based on savings and loans
-        if agent.savings > agent.model.rich_threshold:
-            color = RICH_COLOR
-        if agent.savings < 10 and agent.loans < 10:
-            color = MID_COLOR
-        if agent.loans > 10:
-            color = POOR_COLOR
-
+        if agent.valuation() < 0:
+            color = BANKRUPT_COLOR
+        elif agent.is_big():
+            color = BIG_COLOR
+        else:
+            color = SMALL_COLOR
+        
         portrayal["Color"] = color
 
     return portrayal
@@ -112,9 +116,9 @@ canvas_element = mesa.visualization.CanvasGrid(person_portrayal, 20, 20, 500, 50
 # map data to chart in the ChartModule
 chart_element = mesa.visualization.ChartModule(
     [
-        {"Label": "Rich", "Color": RICH_COLOR},
-        {"Label": "Poor", "Color": POOR_COLOR},
-        {"Label": "Middle Class", "Color": MID_COLOR},
+        {"Label": "Big", "Color": BIG_COLOR},
+        {"Label": "Bankrupt", "Color": BANKRUPT_COLOR},
+        {"Label": "Small", "Color": SMALL_COLOR},
     ]
 )
 

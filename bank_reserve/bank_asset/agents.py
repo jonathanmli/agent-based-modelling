@@ -10,6 +10,7 @@ Author of NetLogo code:
 """
 
 import mesa
+import numpy as np
 
 from bank_asset.random_walk import RandomWalker
 
@@ -103,16 +104,19 @@ class Bank(mesa.Agent):
 
 '''simple firm will try to invest in the most profitable asset. will also try to keep some cash availiable'''
 class Firm(RandomWalker):
-    def __init__(self, unique_id, pos, model, moore, bank, leverage = 2, asset = 10, cash = 100, savings = 100, productivity=0.1, p_asset0 = 10, prod_variance = 1, prod_drift_V = 0, discount_rate = 0.05):
+    def __init__(self, unique_id, pos, model, moore, bank: Bank, leverage = 2, asset = 10, cash = 10, savings = 100, productivity=0, p_asset0 = 10, prod_variance = 0.1, prod_drift_V = 0.01, discount_rate = 0.05):
         # init parent class with required parameters
         super().__init__(unique_id, pos, model, moore=moore)
         '''
         properties
         '''
+        # person's bank, set at __init__
+        self.bank = bank
         # the amount each firm has in physical cash. Must be positive
         self.cash = cash
         # amount of deposits in bank
         self.savings = savings
+        self.bank.deposit(savings)
         # amount of loans from bank
         self.loans = 0
         # the amount each firm has in asset 0. Must be positive
@@ -121,8 +125,6 @@ class Firm(RandomWalker):
         self.productivity = productivity
         # how much leverage this firm seeks (ie. loan to collateral ratio)
         self.leverage = leverage
-        # person's bank, set at __init__
-        self.bank = bank
         # whether this firm is bankrupt or not
         self.bankrupt = False
         # the value that the firm places on asset0
@@ -143,7 +145,7 @@ class Firm(RandomWalker):
         # self.wealth = 0
 
     def get_neighbors(self):
-        return self.model.get_neighbors(self.pos)
+        return self.model.grid.get_neighbors(self.pos, self.moore, True)
 
     def buy_assets(self):
         '''attempt to buy 1 unit of asset0 from the neighbor with the lowest valuation'''
@@ -185,20 +187,37 @@ class Firm(RandomWalker):
     def receive(self, amount):
         self.cash += amount
 
+    def expected_return_asset0(self):
+        return np.exp(self.productivity + self.prod_variance/2)-1
+
     def produce(self):
         '''Create value using the assets they have'''
-        self.asset0 += self.random.gauss(self.productivity*self.asset0, self.prod_variance * self.asset0)
+        self.asset0 *= np.exp(self.random.gauss(self.productivity, self.prod_variance))
+
+        # productivity drifts
+        # self.productivity += self.random.gauss(0, self.prod_drift_V)
+        # if self.asset0 > 0:
+        #     self.asset0 += self.asset0 * self.random.gauss(self.productivity, self.prod_variance)
+        #     if self.asset0 < 0:
+        #         self.asset0 = 0
+        print('v', self.valuation())
+        print('a', self.asset0)
+        print('s', self.savings)
+        print('p', self.p_asset0)
+
+        
+        
 
     def liquidate(self):
         """If the firm does not have enough collateral to meet bank requirements, they must liquidate (sell) assets each round until they meet requirements. They cannot do anything else"""
         self.sell_assets(isdesperate=True)
         
     def valuation(self):
-        return(self.bank.haircut * self.p_asset0 * self.asset0 + self.cash - self.loans + self.savings)
+        return(self.bank.haircut * self.model.p_asset0 * self.asset0 + self.cash - self.loans + self.savings)
 
     def adjust_p_assets(self):
         '''firm simply assumes that 1) all r.v. are indepent and 2) all r.v. have mean equal to present value (are martingales)'''
-        self.p_asset0 = max(0,self.model.p_asset0 + (self.model.p_asset0 * self.productivity-self.bank.deposit_interest)/self.discount_rate)
+        self.p_asset0 = max(0,self.model.p_asset0 + (self.model.p_asset0 * self.expected_return_asset0()-self.bank.deposit_interest/100)/self.discount_rate)
 
     def pay(self, amount):
         '''pays amount in cash first. if not enough cash, withdraw cash. if still not enough, take loan. returns whether payment happened'''
@@ -254,7 +273,7 @@ class Firm(RandomWalker):
         # total deposit increase
         self.bank.deposits += interest_payment_from_bank
         # check if bank is in liquidity crisis
-        self.bank.check_reserve()
+        self.bank.check_reserves()
 
     def pay_interest_payment(self):
         """ If i have bank loan, the loan increase bacause the interest payment
@@ -284,6 +303,20 @@ class Firm(RandomWalker):
         self.asset0 += self.asset0_storage
         self.asset0_storage = 0
 
+    def is_big(self):
+        return self.valuation() >= self.model.rich_threshold
+    
+    def is_small(self):
+        return self.valuation() <= self.model.poor_threshold
+
+    def is_bankrupt(self):
+        return self.valuation() < 0
+
+    def is_medium(self):
+        return not (self.is_big() or self.is_small())
+
+    def is_not_big(self):
+        return not (self.is_bankrupt() or self.is_big())
 
     # step is called for each agent in model.BankReservesModel.schedule.step()
     def step(self):

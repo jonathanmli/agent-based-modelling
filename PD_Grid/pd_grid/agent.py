@@ -75,7 +75,7 @@ class PDAgent(mesa.Agent):
     def calculate_payoffs(self):
         payoffs = np.zeros_like(self.move_i)
 
-        neighbors = self.model.grid.get_neighbors(self.pos, True)
+        neighbors = self.model.grid.get_neighbors(self.pos, moore = self., True)
         if self.model.schedule_type == "Simultaneous":
             moves = [neighbor.next_move for neighbor in neighbors]
         else:
