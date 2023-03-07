@@ -114,7 +114,7 @@ model_params = {
 canvas_element = mesa.visualization.CanvasGrid(person_portrayal, 20, 20, 500, 500)
 
 # map data to chart in the ChartModule
-chart_element = mesa.visualization.ChartModule(
+chart_element0 = mesa.visualization.ChartModule(
     [
         {"Label": "Big", "Color": BIG_COLOR},
         {"Label": "Bankrupt", "Color": BANKRUPT_COLOR},
@@ -122,10 +122,39 @@ chart_element = mesa.visualization.ChartModule(
     ]
 )
 
+# map data to chart in the ChartModule
+chart_element1 = mesa.visualization.ChartModule(
+    [
+        {"Label": "Average Price of Asset", "Color": BIG_COLOR},
+    ]
+)
+
+# map data to chart in the ChartModule
+chart_element2 = mesa.visualization.ChartModule(
+    [
+        {"Label": "Total Assets", "Color": BIG_COLOR},
+    ]
+)
+
+# map data to chart in the ChartModule
+chart_element3 = mesa.visualization.ChartModule(
+    [
+        {"Label": "Total Loans", "Color": BIG_COLOR},
+        {"Label": "Total Savings", "Color": SMALL_COLOR},
+    ]
+)
+
+# map data to chart in the ChartModule
+chart_element4 = mesa.visualization.ChartModule(
+    [
+        {"Label": "Total Valuation", "Color": BIG_COLOR},
+    ]
+)
+
 # create instance of Mesa ModularServer
 server = mesa.visualization.ModularServer(
     BankReserves,
-    [canvas_element, chart_element],
+    [canvas_element, chart_element0, chart_element1, chart_element2, chart_element4],
     "Bank Reserves Model",
     model_params=model_params,
 )

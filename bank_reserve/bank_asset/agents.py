@@ -163,6 +163,7 @@ class Firm(RandomWalker):
                 self.asset0_storage += 1
                 nb.asset0 -= 1
                 nb.receive(price)
+                self.model.report_p_asset0(price)
 
     def sell_assets(self, isdesperate=False):
         '''attempt to sell off 1 unit of asset0 to the neighbor with the highest valuation'''
@@ -183,6 +184,7 @@ class Firm(RandomWalker):
                     self.asset0 -= 1
                     nb.asset0_storage += 1
                     self.receive(price)
+                    self.model.report_p_asset0(price)
                 
     def receive(self, amount):
         self.cash += amount
@@ -200,10 +202,10 @@ class Firm(RandomWalker):
         #     self.asset0 += self.asset0 * self.random.gauss(self.productivity, self.prod_variance)
         #     if self.asset0 < 0:
         #         self.asset0 = 0
-        print('v', self.valuation())
-        print('a', self.asset0)
-        print('s', self.savings)
-        print('p', self.p_asset0)
+        # print('v', self.valuation())
+        # print('a', self.asset0)
+        # print('s', self.savings)
+        # print('p', self.p_asset0)
 
         
         
@@ -214,6 +216,9 @@ class Firm(RandomWalker):
         
     def valuation(self):
         return(self.bank.haircut * self.model.p_asset0 * self.asset0 + self.cash - self.loans + self.savings)
+
+    def expected_value(self):
+        return(self.asset0*self.model.p_asset0 + self.cash - self.loans + self.savings + (self.model.p_asset0 * self.expected_return_asset0()+self.savings * self.bank.deposit_interest/100)/self.discount_rate)
 
     def adjust_p_assets(self):
         '''firm simply assumes that 1) all r.v. are indepent and 2) all r.v. have mean equal to present value (are martingales)'''

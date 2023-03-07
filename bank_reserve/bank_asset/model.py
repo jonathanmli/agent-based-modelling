@@ -68,13 +68,16 @@ def get_total_valuation(model):
 
 def get_total_assets(model):
     agent_asset0s = [a.asset0 for a in model.schedule.agents]
-    return np.sum(agent_asset0s)
+    return float(np.sum(agent_asset0s))
 
 def get_total_loans(model):
     # list of amounts of all agents' loans
     agent_loans = [a.loans for a in model.schedule.agents]
     # return sum of all agents' loans
     return np.sum(agent_loans)
+
+def get_avg_p_asset0(model):
+    return model.p_asset0
 
 class BankReserves(mesa.Model):
     """
@@ -116,7 +119,8 @@ class BankReserves(mesa.Model):
         risk_sigma = 5,
         risk_preference = 0.5,
         p_asset0 = 10,
-        fed_interest = 2
+        fed_interest = 2,
+        eta = 0.5
     ):
         self.height = height
         self.width = width
@@ -131,6 +135,8 @@ class BankReserves(mesa.Model):
         self.loan_interest = loan_interest
         self.p_asset0 = p_asset0
         self.fed_interest = fed_interest
+        self.p_history = []
+        self.eta = eta
         
         # set risk asset profit and variance
         self.risk_mu = risk_mu
@@ -145,10 +151,11 @@ class BankReserves(mesa.Model):
                 "Big": get_num_big_agents,
                 "Bankrupt": get_num_bankrupt_agents,
                 "Small": get_num_non_big_agents,
-                "Savings": get_total_savings,
-                "Wallets": get_total_valuation,
-                "Money": get_total_assets,
-                "Loans": get_total_loans,
+                "Total Savings": get_total_savings,
+                "Total Valuation": get_total_valuation,
+                "Total Assets": get_total_assets,
+                "Total Loans": get_total_loans,
+                "Average Price of Asset": get_avg_p_asset0,
             },
             agent_reporters={"Valuation": lambda x: x.valuation()},
         )
@@ -170,12 +177,23 @@ class BankReserves(mesa.Model):
 
         self.running = True
         self.datacollector.collect(self)
+        
+
+    def adjust_p_asset0(self):
+        if len(self.p_history) > 0:
+            self.p_asset0  +=  self.eta * np.average(self.p_history)- (1-self.eta) * self.p_asset0
+            self.p_history = []
+        
+    def report_p_asset0(self, p):
+        self.p_history += [p]
 
     def step(self):
         # bank adjust interest rates
         self.bank.adjust_rates()
         # tell all the agents in the model to run their step function
         self.schedule.step()
+        # adjust average p_asset0 prices
+        self.adjust_p_asset0()
         # collect data
         self.datacollector.collect(self)
 
