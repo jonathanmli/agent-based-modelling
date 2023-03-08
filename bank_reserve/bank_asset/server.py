@@ -141,6 +141,7 @@ chart_element3 = mesa.visualization.ChartModule(
     [
         {"Label": "Total Loans", "Color": BIG_COLOR},
         {"Label": "Total Savings", "Color": SMALL_COLOR},
+        {"Label": "Total Cash", "Color": BANKRUPT_COLOR},
     ]
 )
 
@@ -151,10 +152,27 @@ chart_element4 = mesa.visualization.ChartModule(
     ]
 )
 
+# map data to chart in the ChartModule
+chart_element5 = mesa.visualization.ChartModule(
+    [
+        {"Label": "Total Bank Liquidity Crisis", "Color": BIG_COLOR},
+    ]
+)
+
+# map data to chart in the ChartModule
+chart_element6 = mesa.visualization.ChartModule(
+    [
+        {"Label": "Number of Transactions", "Color": BIG_COLOR},
+    ]
+)
+
+
+
+
 # create instance of Mesa ModularServer
 server = mesa.visualization.ModularServer(
     BankReserves,
-    [canvas_element, chart_element0, chart_element1, chart_element2, chart_element4],
+    [canvas_element, chart_element0, chart_element1, chart_element2, chart_element3, chart_element4, chart_element5, chart_element6],
     "Bank Reserves Model",
     model_params=model_params,
 )

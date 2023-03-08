@@ -17,7 +17,7 @@ from bank_asset.random_walk import RandomWalker
 '''simple bank will set a single interest rate such that cash flow is balanced. simple bank cannot directly invest in risky assets'''
 class Bank(mesa.Agent):
     def __init__(self, unique_id, model, reserve_percent=50, 
-                 deposit_interest=1, loan_interest=2, risk_preference=0.5, haircut = 0.5, p_asset0 = 10, cash = 100):
+                 deposit_interest=1, loan_interest=2, risk_preference=0.5, haircut = 0.5, p_asset0 = 10, cash = 2000):
         # initialize the parent class with required parameters
         super().__init__(unique_id, model)
 
@@ -43,13 +43,19 @@ class Bank(mesa.Agent):
         self.deposit_interest = deposit_interest
         # assets -- for tracking consumption
         self.asset0_consumed = 0
+        # # minimum deposit interest
+        # self.min_deposit_interest = 
 
     '''adjust interest rates so that cash flow is balanced'''
     def adjust_rates(self):
         # assumptions: 1) loan interest must be at least fed interest, otherwise no incentive to give loans 2) deposit - loan interest diff must be such that bank is not losing money
         self.loan_interest = self.model.fed_interest
         loan_rev = self.loans * self.loan_interest/100
-        self.deposit_interest = loan_rev/ self.deposits 
+        # to_shrink = self.
+        self.deposit_interest = loan_rev/ self.deposits
+
+        # print('bank c', self.cash)
+        print('bank di', self.deposit_interest)
 
     # '''calculate the loan interest rate this period'''
     # def calculate_loan_rate(self):
@@ -69,7 +75,8 @@ class Bank(mesa.Agent):
     '''check if bank meets reserve requirements'''
     def check_reserves(self):
         if self.req_reserves() > self.cash:
-            self.l_crisis += 1
+            # self.l_crisis += 1
+            pass
 
     '''withdraws some amount of cash from bank. returns whether it happened'''
     def withdraw(self, amount):
@@ -104,7 +111,7 @@ class Bank(mesa.Agent):
 
 '''simple firm will try to invest in the most profitable asset. will also try to keep some cash availiable'''
 class Firm(RandomWalker):
-    def __init__(self, unique_id, pos, model, moore, bank: Bank, leverage = 2, asset = 10, cash = 10, savings = 100, productivity=0, p_asset0 = 10, prod_variance = 0.1, prod_drift_V = 0.01, discount_rate = 0.05):
+    def __init__(self, unique_id, pos, model, moore, bank: Bank, leverage = 2, asset = 10, cash = 10, savings = 90, productivity=-0.05, p_asset0 = 10, prod_variance = 0.1, prod_drift_V = 0.1, discount_rate = 0.05):
         # init parent class with required parameters
         super().__init__(unique_id, pos, model, moore=moore)
         '''
@@ -116,7 +123,7 @@ class Firm(RandomWalker):
         self.cash = cash
         # amount of deposits in bank
         self.savings = savings
-        self.bank.deposit(savings)
+        self.bank.deposits += savings
         # amount of loans from bank
         self.loans = 0
         # the amount each firm has in asset 0. Must be positive
@@ -152,7 +159,7 @@ class Firm(RandomWalker):
         best_nb = None
         best_nb_p = self.p_asset0
         for nb in self.get_neighbors():
-            if nb.p_asset0 > best_nb_p:
+            if nb.p_asset0 < best_nb_p and nb.asset0 >= 1:
                 best_nb_p = nb.p_asset0
                 best_nb = nb
         if best_nb is not None:
@@ -167,13 +174,13 @@ class Firm(RandomWalker):
 
     def sell_assets(self, isdesperate=False):
         '''attempt to sell off 1 unit of asset0 to the neighbor with the highest valuation'''
-        if self.asset0 > 1:
+        if self.asset0 >= 1:
             best_nb = None
             best_nb_p = self.p_asset0
             if isdesperate:
                 best_nb_p = 0
             for nb in self.get_neighbors():
-                if nb.p_asset0 < best_nb_p:
+                if nb.p_asset0 > best_nb_p:
                     best_nb_p = nb.p_asset0
                     best_nb = nb
             if best_nb is not None:
@@ -190,22 +197,29 @@ class Firm(RandomWalker):
         self.cash += amount
 
     def expected_return_asset0(self):
+        # geometric expected
         return np.exp(self.productivity + self.prod_variance/2)-1
 
     def produce(self):
         '''Create value using the assets they have'''
-        self.asset0 *= np.exp(self.random.gauss(self.productivity, self.prod_variance))
+        # geometric production
+        self.asset0 *= np.exp(self.random.gauss(self.productivity, self.prod_variance**2))
 
-        # productivity drifts
-        # self.productivity += self.random.gauss(0, self.prod_drift_V)
+        # additive production
         # if self.asset0 > 0:
         #     self.asset0 += self.asset0 * self.random.gauss(self.productivity, self.prod_variance)
         #     if self.asset0 < 0:
         #         self.asset0 = 0
-        # print('v', self.valuation())
+
+        # productivity drifts
+        self.productivity += self.random.gauss(0, self.prod_drift_V**2)
+        
+        
+        print('v', self.valuation())
         # print('a', self.asset0)
         # print('s', self.savings)
-        # print('p', self.p_asset0)
+        print('p', self.p_asset0)
+        print('d', self.expected_return_asset0())
 
         
         
@@ -222,7 +236,9 @@ class Firm(RandomWalker):
 
     def adjust_p_assets(self):
         '''firm simply assumes that 1) all r.v. are indepent and 2) all r.v. have mean equal to present value (are martingales)'''
-        self.p_asset0 = max(0,self.model.p_asset0 + (self.model.p_asset0 * self.expected_return_asset0()-self.bank.deposit_interest/100)/self.discount_rate)
+        # self.p_asset0 = max(0,self.model.p_asset0 + (self.model.p_asset0 * self.expected_return_asset0()-self.bank.deposit_interest/100)/self.discount_rate)
+        self.p_asset0 = self.model.p_asset0 * (1+self.expected_return_asset0()) / (1+self.bank.deposit_interest/100)
+
 
     def pay(self, amount):
         '''pays amount in cash first. if not enough cash, withdraw cash. if still not enough, take loan. returns whether payment happened'''
@@ -232,15 +248,19 @@ class Firm(RandomWalker):
         else:
             amount1 = amount - self.cash
             if self.savings >= amount1:
-                self.withdraw(amount1)
-                self.cash = 0
-                return True
-            else:
-                amount2 = amount1 - self.savings
-                if self.take_loan(amount2):
-                    self.withdraw(amount1)
+                if self.withdraw(amount1):
                     self.cash = 0
                     return True
+                else:
+                    return False
+            else:
+                amount2 = amount1 - self.savings
+                if self.withdraw(self.savings):
+                    if self.take_loan(amount2):
+                        self.cash = 0
+                        return True
+                    else:
+                        return False
                 else:
                     return False
 
@@ -257,6 +277,7 @@ class Firm(RandomWalker):
         '''take loan from bank'''
         if self.bank.give_loan(amount):
             self.cash += amount
+            self.loans += amount
             return True
         else:
             return False
@@ -297,12 +318,12 @@ class Firm(RandomWalker):
             if self.loans > 0:
                 amount1 = min(self.loans, amount0)
                 self.loans -= amount1
-                self.bank.loans -= amount1
                 amount0 -= amount1
                 self.bank.pay_loan(amount1)
             # then deposit
             self.savings += amount0
             self.bank.deposit(amount0)
+            self.cash -= amount0
 
         # put assets to use
         self.asset0 += self.asset0_storage

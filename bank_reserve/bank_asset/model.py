@@ -47,19 +47,23 @@ def get_num_mid_agents(model):
     mid_agents = [a for a in model.schedule.agents if a.is_medium()]
     return len(mid_agents)
 
+def get_l_crisis(model):
+    return model.bank.l_crisis
 
 def get_total_savings(model):
     """sum of all agents' savings"""
     agent_savings = [a.savings for a in model.schedule.agents]
     # return the sum of agents' savings
-    return np.sum(agent_savings)
+    return float(np.sum(agent_savings))
 
+def get_number_transactions(model):
+    return len(model.p_history)
 
 def get_total_cash(model):
     """sum of amounts of all cash in economy"""
     agent_cash = [a.cash for a in model.schedule.agents]
     # return the sum of all agents' wallets
-    return np.sum(agent_cash)
+    return float(np.sum(agent_cash))
 
 def get_total_valuation(model):
     # sum of all agents' valuations
@@ -74,7 +78,7 @@ def get_total_loans(model):
     # list of amounts of all agents' loans
     agent_loans = [a.loans for a in model.schedule.agents]
     # return sum of all agents' loans
-    return np.sum(agent_loans)
+    return float(np.sum(agent_loans))
 
 def get_avg_p_asset0(model):
     return model.p_asset0
@@ -156,6 +160,9 @@ class BankReserves(mesa.Model):
                 "Total Assets": get_total_assets,
                 "Total Loans": get_total_loans,
                 "Average Price of Asset": get_avg_p_asset0,
+                "Total Bank Liquidity Crisis": get_l_crisis,
+                "Number of Transactions": get_number_transactions,
+                "Total Cash": get_total_cash,
             },
             agent_reporters={"Valuation": lambda x: x.valuation()},
         )
@@ -186,16 +193,17 @@ class BankReserves(mesa.Model):
         
     def report_p_asset0(self, p):
         self.p_history += [p]
+        print('traded')
 
     def step(self):
         # bank adjust interest rates
         self.bank.adjust_rates()
         # tell all the agents in the model to run their step function
         self.schedule.step()
-        # adjust average p_asset0 prices
-        self.adjust_p_asset0()
         # collect data
         self.datacollector.collect(self)
+        # adjust average p_asset0 prices
+        self.adjust_p_asset0()
 
     def run_model(self):
         for i in range(self.run_time):
