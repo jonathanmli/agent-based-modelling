@@ -111,9 +111,13 @@ class Bank(mesa.Agent):
 
 '''simple firm will try to invest in the most profitable asset. will also try to keep some cash availiable'''
 class Firm(RandomWalker):
-    def __init__(self, unique_id, pos, model, moore, bank: Bank, leverage = 2, asset = 10, cash = 10, savings = 90, productivity=-0.05, p_asset0 = 10, prod_variance = 0.1, prod_drift_V = 0.1, discount_rate = 0.05):
+    def __init__(self, unique_id, pos, model, moore, bank: Bank, leverage = 2, asset = 10, cash = 10, savings = 90, productivity=None, p_asset0 = 10, prod_variance = 0.5, prod_drift_V = 0.1, discount_rate = 0.05, deathrate=0.0):
         # init parent class with required parameters
         super().__init__(unique_id, pos, model, moore=moore)
+        '''default options'''
+        if productivity is None:
+            productivity = max(-prod_variance/2,-0.1)
+
         '''
         properties
         '''
@@ -144,6 +148,8 @@ class Firm(RandomWalker):
         self.asset0_storage = 0
         # discount rate
         self.discount_rate = discount_rate
+        # probability of dying each turn
+        self.deathrate = deathrate
 
         """start everyone off with a random amount in their wallet from 1 to a
            user settable rich threshold amount"""
@@ -221,7 +227,9 @@ class Firm(RandomWalker):
         print('p', self.p_asset0)
         print('d', self.expected_return_asset0())
 
-        
+        # get rid of small assets
+        if self.asset0 < 1:
+            self.asset0 = 0
         
 
     def liquidate(self):
@@ -343,6 +351,12 @@ class Firm(RandomWalker):
 
     def is_not_big(self):
         return not (self.is_bankrupt() or self.is_big())
+
+    def is_operating(self):
+        return (not self.is_bankrupt()) and self.asset0 >= 1
+    
+    def is_not_operating(self):
+        return (not self.is_bankrupt()) and self.asset0 < 1
 
     # step is called for each agent in model.BankReservesModel.schedule.step()
     def step(self):

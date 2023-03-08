@@ -27,6 +27,16 @@ def get_num_big_agents(model):
     rich_agents = [a for a in model.schedule.agents if a.is_big()]
     return len(rich_agents)
 
+def get_num_op_agents(model):
+    """return number of rich agents"""
+    rich_agents = [a for a in model.schedule.agents if a.is_operating()]
+    return len(rich_agents)
+
+def get_num_n_op_agents(model):
+    """return number of rich agents"""
+    rich_agents = [a for a in model.schedule.agents if a.is_not_operating()]
+    return len(rich_agents)
+
 def get_num_bankrupt_agents(model):
     """return number of rich agents"""
     rich_agents = [a for a in model.schedule.agents if a.is_bankrupt()]
@@ -163,6 +173,8 @@ class BankReserves(mesa.Model):
                 "Total Bank Liquidity Crisis": get_l_crisis,
                 "Number of Transactions": get_number_transactions,
                 "Total Cash": get_total_cash,
+                "Operating": get_num_op_agents,
+                "Not Operating": get_num_n_op_agents,
             },
             agent_reporters={"Valuation": lambda x: x.valuation()},
         )

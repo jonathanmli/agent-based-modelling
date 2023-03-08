@@ -34,15 +34,16 @@ def person_portrayal(agent):
         portrayal["r"] = 0.5
         portrayal["Layer"] = 0
         portrayal["Filled"] = "true"
-        portrayal["text"] = int(agent.valuation())
+        # portrayal["text"] = int(agent.valuation())
+        portrayal["text"] = round(agent.expected_return_asset0(), 2)
         portrayal["text_color"] = TEXT_COLOR
 
         color = SMALL_COLOR
 
         # set agent color based on savings and loans
-        if agent.valuation() < 0:
+        if agent.is_bankrupt():
             color = BANKRUPT_COLOR
-        elif agent.is_big():
+        elif agent.is_operating():
             color = BIG_COLOR
         else:
             color = SMALL_COLOR
@@ -116,9 +117,9 @@ canvas_element = mesa.visualization.CanvasGrid(person_portrayal, 20, 20, 500, 50
 # map data to chart in the ChartModule
 chart_element0 = mesa.visualization.ChartModule(
     [
-        {"Label": "Big", "Color": BIG_COLOR},
+        {"Label": "Operating", "Color": BIG_COLOR},
         {"Label": "Bankrupt", "Color": BANKRUPT_COLOR},
-        {"Label": "Small", "Color": SMALL_COLOR},
+        {"Label": "Not Operating", "Color": SMALL_COLOR},
     ]
 )
 
