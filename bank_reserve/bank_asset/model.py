@@ -134,7 +134,8 @@ class BankReserves(mesa.Model):
         risk_preference = 0.5,
         p_asset0 = 10,
         fed_interest = 2,
-        eta = 0.5
+        eta = 0.5,
+        birthrate = 0.1
     ):
         self.height = height
         self.width = width
@@ -151,6 +152,9 @@ class BankReserves(mesa.Model):
         self.fed_interest = fed_interest
         self.p_history = []
         self.eta = eta
+        self.birthrate = birthrate
+        self.current_id = 0
+        
         
         # set risk asset profit and variance
         self.risk_mu = risk_mu
@@ -185,18 +189,21 @@ class BankReserves(mesa.Model):
 
         # create people for the model according to number of people set by user
         for i in range(self.init_people):
-            # set x, y coords randomly within the grid
-            x = self.random.randrange(self.width)
-            y = self.random.randrange(self.height)
-            p = Firm(i, (x, y), self, True, self.bank)
-            # place the Person object on the grid at coordinates (x, y)
-            self.grid.place_agent(p, (x, y))
-            # add the Person object to the model schedule
-            self.schedule.add(p)
+            self.create_firm(self.bank)
 
         self.running = True
         self.datacollector.collect(self)
         
+
+    def create_firm(self, bank, **kwargs):
+        # set x, y coords randomly within the grid
+        x = self.random.randrange(self.width)
+        y = self.random.randrange(self.height)
+        p = Firm(self.next_id(), (x, y), self, True, bank, **kwargs)
+        # place the Person object on the grid at coordinates (x, y)
+        self.grid.place_agent(p, (x, y))
+        # add the Person object to the model schedule
+        self.schedule.add(p)
 
     def adjust_p_asset0(self):
         if len(self.p_history) > 0:
@@ -207,6 +214,11 @@ class BankReserves(mesa.Model):
         self.p_history += [p]
         print('traded')
 
+    def firm_birth(self):
+        if self.random.uniform(0,1) < self.birthrate:
+            self.create_firm(self.bank)
+            print("birth")
+
     def step(self):
         # bank adjust interest rates
         self.bank.adjust_rates()
@@ -216,6 +228,8 @@ class BankReserves(mesa.Model):
         self.datacollector.collect(self)
         # adjust average p_asset0 prices
         self.adjust_p_asset0()
+        # create new firms
+        self.firm_birth()
 
     def run_model(self):
         for i in range(self.run_time):

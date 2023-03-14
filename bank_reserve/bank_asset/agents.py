@@ -54,6 +54,12 @@ class Bank(mesa.Agent):
         # to_shrink = self.
         self.deposit_interest = loan_rev/ self.deposits
 
+
+
+        # assumptions: 1) deposit interest must be at least fed interest, otherwise no incentive to give put deposit in bank 2) deposit - loan interest diff must be such that bank is not losing money
+        # self.deposit_interest = self.model.fed_interest
+        # deposit_costs = self.deposits * self.deposit_interest/100
+        # self.loan_interest = deposit_costs/self.loans
         # print('bank c', self.cash)
         print('bank di', self.deposit_interest)
 
@@ -111,7 +117,7 @@ class Bank(mesa.Agent):
 
 '''simple firm will try to invest in the most profitable asset. will also try to keep some cash availiable'''
 class Firm(RandomWalker):
-    def __init__(self, unique_id, pos, model, moore, bank: Bank, leverage = 2, asset = 10, cash = 10, savings = 90, productivity=None, p_asset0 = 10, prod_variance = 0.5, prod_drift_V = 0.1, discount_rate = 0.05, deathrate=0.0):
+    def __init__(self, unique_id, pos, model, moore, bank: Bank, leverage = 2, asset = 10, cash = 10, savings = 90, productivity=None, p_asset0 = 10, prod_variance = 0.5, prod_drift_V = 0.1, discount_rate = 0.05, deathrate=0.05):
         # init parent class with required parameters
         super().__init__(unique_id, pos, model, moore=moore)
         '''default options'''
@@ -358,6 +364,25 @@ class Firm(RandomWalker):
     def is_not_operating(self):
         return (not self.is_bankrupt()) and self.asset0 < 1
 
+    def get_deathrate(self):
+        threshold = self.deathrate
+        if self.is_bankrupt():
+            if self.asset0 <= 0:
+                threshold = 1
+        else:
+            threshold *= np.exp(-self.valuation())
+        return threshold
+
+    def check_death(self):
+        if self.random.uniform(0,1) < self.get_deathrate():
+            # remove the firm
+            self.bank.cash += self.cash
+            self.bank.loans -= self.loans
+            self.bank.deposits -= self.savings
+            self.model.grid.remove_agent(self)
+            self.model.schedule.remove(self)
+            
+
     # step is called for each agent in model.BankReservesModel.schedule.step()
     def step(self):
 
@@ -384,6 +409,11 @@ class Firm(RandomWalker):
             # produce
             self.produce()
 
+            # check death
+
         # calibrate valuation
         self.adjust_p_assets()
+
+        # check death
+        self.check_death()
 
