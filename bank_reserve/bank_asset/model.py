@@ -135,7 +135,8 @@ class BankReserves(mesa.Model):
         p_asset0 = 10,
         fed_interest = 2,
         eta = 0.5,
-        birthrate = 0.1
+        birthrate = 0.0,
+        deathrate = 0.0,
     ):
         self.height = height
         self.width = width
@@ -154,6 +155,7 @@ class BankReserves(mesa.Model):
         self.eta = eta
         self.birthrate = birthrate
         self.current_id = 0
+        self.deathrate = deathrate
         
         
         # set risk asset profit and variance
@@ -199,7 +201,7 @@ class BankReserves(mesa.Model):
         # set x, y coords randomly within the grid
         x = self.random.randrange(self.width)
         y = self.random.randrange(self.height)
-        p = Firm(self.next_id(), (x, y), self, True, bank, **kwargs)
+        p = Firm(self.next_id(), (x, y), self, True, bank, deathrate=self.deathrate, **kwargs)
         # place the Person object on the grid at coordinates (x, y)
         self.grid.place_agent(p, (x, y))
         # add the Person object to the model schedule
@@ -215,7 +217,7 @@ class BankReserves(mesa.Model):
         print('traded')
 
     def firm_birth(self):
-        if self.random.uniform(0,1) < self.birthrate:
+        if self.random.random() < self.birthrate:
             self.create_firm(self.bank)
             print("birth")
 

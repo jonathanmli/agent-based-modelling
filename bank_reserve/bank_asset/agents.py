@@ -17,7 +17,7 @@ from bank_asset.random_walk import RandomWalker
 '''simple bank will set a single interest rate such that cash flow is balanced. simple bank cannot directly invest in risky assets'''
 class Bank(mesa.Agent):
     def __init__(self, unique_id, model, reserve_percent=50, 
-                 deposit_interest=1, loan_interest=2, risk_preference=0.5, haircut = 0.5, p_asset0 = 10, cash = 2000):
+                 deposit_interest=1, loan_interest=2, risk_preference=0.5, haircut = 0.5, p_asset0 = 10, cash = 1000):
         # initialize the parent class with required parameters
         super().__init__(unique_id, model)
 
@@ -49,19 +49,30 @@ class Bank(mesa.Agent):
     '''adjust interest rates so that cash flow is balanced'''
     def adjust_rates(self):
         # assumptions: 1) loan interest must be at least fed interest, otherwise no incentive to give loans 2) deposit - loan interest diff must be such that bank is not losing money
-        self.loan_interest = self.model.fed_interest
-        loan_rev = self.loans * self.loan_interest/100
-        # to_shrink = self.
-        self.deposit_interest = loan_rev/ self.deposits
+        # self.loan_interest = self.model.fed_interest
+        # loan_rev = self.loans * self.loan_interest/100
+        # # to_shrink = self.
+        # if self.deposits == 0:
+        #     self.deposit_interest = 0
+        # else:
+        #     self.deposit_interest = loan_rev/ self.deposits
 
 
 
         # assumptions: 1) deposit interest must be at least fed interest, otherwise no incentive to give put deposit in bank 2) deposit - loan interest diff must be such that bank is not losing money
+        self.deposit_interest = self.model.fed_interest
+        deposit_costs = self.deposits * self.deposit_interest/100
+        self.loan_interest = deposit_costs/self.loans
+
+        # print('bank c', self.cash)
+        # print('bank di', self.deposit_interest)
+
+
+        # assumptions: 1) deposit interest must be at least fed interest, otherwise no incentive to give put deposit in bank 2) t+1 deposits and t+1 loans must be such that (t+1 loans)/(t+1 deposits) = reserve ratio. 
         # self.deposit_interest = self.model.fed_interest
         # deposit_costs = self.deposits * self.deposit_interest/100
         # self.loan_interest = deposit_costs/self.loans
         # print('bank c', self.cash)
-        print('bank di', self.deposit_interest)
 
     # '''calculate the loan interest rate this period'''
     # def calculate_loan_rate(self):
@@ -80,8 +91,10 @@ class Bank(mesa.Agent):
     
     '''check if bank meets reserve requirements'''
     def check_reserves(self):
+        print(self.req_reserves())
+        print("cash", self.cash)
         if self.req_reserves() > self.cash:
-            # self.l_crisis += 1
+            self.l_crisis += 1
             pass
 
     '''withdraws some amount of cash from bank. returns whether it happened'''
@@ -117,12 +130,12 @@ class Bank(mesa.Agent):
 
 '''simple firm will try to invest in the most profitable asset. will also try to keep some cash availiable'''
 class Firm(RandomWalker):
-    def __init__(self, unique_id, pos, model, moore, bank: Bank, leverage = 2, asset = 10, cash = 10, savings = 90, productivity=None, p_asset0 = 10, prod_variance = 0.5, prod_drift_V = 0.1, discount_rate = 0.05, deathrate=0.05):
+    def __init__(self, unique_id, pos, model, moore, bank: Bank, leverage = 2, asset = 10, cash = 0, savings = 0, loans = 40, productivity=None, p_asset0 = 10, prod_sd = 0.01, prod_drift_sd = 0.01, discount_rate = 0.05, deathrate=0.0, prod_reversion = 0.1):
         # init parent class with required parameters
         super().__init__(unique_id, pos, model, moore=moore)
         '''default options'''
         if productivity is None:
-            productivity = max(-prod_variance/2,-0.1)
+            productivity = -prod_sd**2/2
 
         '''
         properties
@@ -135,7 +148,8 @@ class Firm(RandomWalker):
         self.savings = savings
         self.bank.deposits += savings
         # amount of loans from bank
-        self.loans = 0
+        self.loans = loans
+        self.bank.loans += loans
         # the amount each firm has in asset 0. Must be positive
         self.asset0 = asset
         # the percentage increase in assets this firm can create in each period
@@ -147,15 +161,19 @@ class Firm(RandomWalker):
         # the value that the firm places on asset0
         self.p_asset0 = p_asset0
         # firms will try to hold some amount of cash for trading
-        self.prod_variance = prod_variance
+        self.prod_sd = prod_sd
         # how much the firm's productivity can change by each period
-        self.prod_drift_V = prod_drift_V
-        # assets not used for production currently
+        self.prod_drift_sd = prod_drift_sd
+        # assets in use for production
         self.asset0_storage = 0
         # discount rate
         self.discount_rate = discount_rate
         # probability of dying each turn
         self.deathrate = deathrate
+        # how strongly mean reverts
+        self.prod_reversion = prod_reversion
+
+        
 
         """start everyone off with a random amount in their wallet from 1 to a
            user settable rich threshold amount"""
@@ -210,12 +228,14 @@ class Firm(RandomWalker):
 
     def expected_return_asset0(self):
         # geometric expected
-        return np.exp(self.productivity + self.prod_variance/2)-1
+        return np.exp(self.productivity + self.prod_sd**2/2)-1
 
     def produce(self):
         '''Create value using the assets they have'''
         # geometric production
-        self.asset0 *= np.exp(self.random.gauss(self.productivity, self.prod_variance**2))
+        self.asset0 *= np.exp(self.random.gauss(self.productivity, self.prod_sd))
+
+        
 
         # additive production
         # if self.asset0 > 0:
@@ -223,15 +243,17 @@ class Firm(RandomWalker):
         #     if self.asset0 < 0:
         #         self.asset0 = 0
 
-        # productivity drifts
-        self.productivity += self.random.gauss(0, self.prod_drift_V**2)
+        # # productivity drifts without mean reversion
+        # self.productivity += self.random.gauss(0, self.prod_drift_sd)
         
+        # productivity drift with mean reversion, discrete Ornstein–Uhlenbeck process
+        self.productivity += -self.prod_reversion*(self.productivity-self.prod_sd**2/2) + self.random.gauss(0, self.prod_drift_sd)
         
-        print('v', self.valuation())
-        # print('a', self.asset0)
-        # print('s', self.savings)
-        print('p', self.p_asset0)
-        print('d', self.expected_return_asset0())
+        # print('v', self.valuation())
+        # # print('a', self.asset0)
+        # # print('s', self.savings)
+        # print('p', self.p_asset0)
+        # print('d', self.expected_return_asset0())
 
         # get rid of small assets
         if self.asset0 < 1:
@@ -251,8 +273,10 @@ class Firm(RandomWalker):
     def adjust_p_assets(self):
         '''firm simply assumes that 1) all r.v. are indepent and 2) all r.v. have mean equal to present value (are martingales)'''
         # self.p_asset0 = max(0,self.model.p_asset0 + (self.model.p_asset0 * self.expected_return_asset0()-self.bank.deposit_interest/100)/self.discount_rate)
-        self.p_asset0 = self.model.p_asset0 * (1+self.expected_return_asset0()) / (1+self.bank.deposit_interest/100)
-
+        if self.savings >= 0:
+            self.p_asset0 = self.model.p_asset0 * (1+self.expected_return_asset0()) / (1+self.bank.deposit_interest/100)
+        else:
+            self.p_asset0 = self.model.p_asset0 * (1+self.expected_return_asset0()) / (1+self.bank.loan_interest/100)
 
     def pay(self, amount):
         '''pays amount in cash first. if not enough cash, withdraw cash. if still not enough, take loan. returns whether payment happened'''
@@ -334,14 +358,18 @@ class Firm(RandomWalker):
                 self.loans -= amount1
                 amount0 -= amount1
                 self.bank.pay_loan(amount1)
+                self.cash -= amount1
             # then deposit
             self.savings += amount0
             self.bank.deposit(amount0)
             self.cash -= amount0
 
-        # put assets to use
+        # put assets to use if expected return is positive. otherwise put assets into storage
         self.asset0 += self.asset0_storage
         self.asset0_storage = 0
+
+        if self.cash < 0:
+            print("error")
 
     def is_big(self):
         return self.valuation() >= self.model.rich_threshold
@@ -374,7 +402,7 @@ class Firm(RandomWalker):
         return threshold
 
     def check_death(self):
-        if self.random.uniform(0,1) < self.get_deathrate():
+        if self.random.random() < self.get_deathrate():
             # remove the firm
             self.bank.cash += self.cash
             self.bank.loans -= self.loans

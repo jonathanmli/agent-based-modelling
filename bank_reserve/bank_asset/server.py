@@ -58,13 +58,13 @@ model_params = {
     "init_people": mesa.visualization.Slider(
         "People", 25, 1, 200, description="Initial Number of People"
     ),
-    "rich_threshold": mesa.visualization.Slider(
-        "Rich Threshold",
-        10,
-        1,
-        20,
-        description="Upper End of Random Initial Wallet Amount",
-    ),
+    # "rich_threshold": mesa.visualization.Slider(
+    #     "Rich Threshold",
+    #     10,
+    #     1,
+    #     20,
+    #     description="Upper End of Random Initial Wallet Amount",
+    # ),
     "reserve_percent": mesa.visualization.Slider(
         "Reserves",
         50,
@@ -72,43 +72,60 @@ model_params = {
         100,
         description="Percent of deposits the bank has to hold in reserve",
     ),
-    "deposit_interest": mesa.visualization.Slider(
-        "deposit_interest",
+    "fed_interest": mesa.visualization.Slider(
+        "Federal interest rate",
         0.1,
         0,
-        1,
+        10,
         0.1,
-        description="the interest rate of deposit",
+        description="the interest rate that the fed sets",
     ),
-    "loan_interest": mesa.visualization.Slider(
-        "loan_interest",
-        1,
+    "birthrate": mesa.visualization.Slider(
+        "Birthrate",
+        0.0,
         0,
-        10,
-        description="the interest rate of loan",
-    ),
-    "risk_mu": mesa.visualization.Slider(
-        "risk_mu",
-        3,
-        0,
-        10,
-        description="the average profit of risk asset",
-    ),
-    "risk_sigma": mesa.visualization.Slider(
-        "risk_sigma",
-        3,
-        0,
-        10,
-        description="the standard deviation of risk asset profit",
-    ),
-    "risk_preference": mesa.visualization.Slider(
-        "risk_preference",
-        0.5,
-        0,
-        1,
         0.1,
-        description="the risk preference of the bank",
+        0.01,
+        description="Birth rate of new firms",
     ),
+    "deathrate": mesa.visualization.Slider(
+        "Deathrate",
+        0.0,
+        0,
+        0.1,
+        0.01,
+        description="Deathrate of bankrupt firms",
+    ),
+    # "loan_interest": mesa.visualization.Slider(
+    #     "loan_interest",
+    #     1,
+    #     0,
+    #     10,
+    #     description="the interest rate of loan",
+    # ),
+    # "deathrate"
+    # "risk_mu": mesa.visualization.Slider(
+    #     "risk_mu",
+    #     3,
+    #     0,
+    #     10,
+    #     description="the average profit of risk asset",
+    # ),
+    # "risk_sigma": mesa.visualization.Slider(
+    #     "risk_sigma",
+    #     3,
+    #     0,
+    #     10,
+    #     description="the standard deviation of risk asset profit",
+    # ),
+    # "risk_preference": mesa.visualization.Slider(
+    #     "risk_preference",
+    #     0.5,
+    #     0,
+    #     1,
+    #     0.1,
+    #     description="the risk preference of the bank",
+    # ),
 }
 
 # set the portrayal function and size of the canvas for visualization
